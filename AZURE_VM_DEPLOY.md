@@ -114,7 +114,7 @@ Preencha com os seus valores:
 
 ```env
 DATABASE_URL="postgresql://excursao_user:SUA_SENHA_FORTE@localhost:5432/excursao_prod"
-JWT_SECRET="COLE_UMA_CHAVE_FORTE_AQUI"
+JWT_SECRET="fd1c50e2896291f965e3abd6ee4e67c2648d5a97a5674482c0bb8fb8a1dde654"
 JWT_EXPIRES_IN="7d"
 FRONTEND_URL="https://seu-dominio.com"
 NODE_ENV="production"

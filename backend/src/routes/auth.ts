@@ -40,7 +40,7 @@ router.post(
       email: user.email,
     });
 
-    res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
+    res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions(req));
 
     res.json({
       token,
@@ -53,8 +53,8 @@ router.post(
   }),
 );
 
-router.post("/logout", (_req, res) => {
-  res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions());
+router.post("/logout", (req, res) => {
+  res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions(req));
   res.status(200).json({ success: true });
 });
 
@@ -80,4 +80,3 @@ router.get(
 );
 
 export default router;
-

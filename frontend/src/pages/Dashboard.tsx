@@ -1,6 +1,7 @@
 import { ArrowRight, CircleDollarSign, CreditCard, LayoutGrid, Ticket, TrendingUp, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { getApiErrorMessage, isApiUnauthorizedError } from "@/api/client";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import StatCard from "@/components/ui/StatCard";
@@ -30,7 +31,11 @@ export default function DashboardPage() {
   }
 
   if (!dashboard.data) {
-    return <div className="panel p-6 text-sm text-muted-foreground">Nao foi possivel carregar o dashboard.</div>;
+    const message = isApiUnauthorizedError(dashboard.error)
+      ? "Sua sessao nao foi validada. Entre novamente ou finalize o HTTPS antes de acessar o resumo."
+      : getApiErrorMessage(dashboard.error);
+
+    return <div className="panel p-6 text-sm text-muted-foreground">{message}</div>;
   }
 
   const highlightPending = (pendingPassengers.data ?? []).filter((item) => item.pending > 0).slice(0, 4);

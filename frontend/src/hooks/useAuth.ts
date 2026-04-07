@@ -1,17 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import api from "@/api/client";
+import api, { getApiErrorMessage, isApiUnauthorizedError } from "@/api/client";
 import type { LoginPayload, User } from "@/types";
 
 const authQueryKey = ["auth", "me"];
+const sessionValidationErrorMessage =
+  "Login concluido, mas a sessao nao foi mantida no navegador. Se voce estiver em HTTP, finalize o HTTPS e tente novamente.";
+
+async function fetchCurrentUser() {
+  const response = await api.get<User>("/auth/me");
+  return response.data;
+}
 
 export function useCurrentUser(enabled = true) {
   return useQuery({
     queryKey: authQueryKey,
-    queryFn: async () => {
-      const response = await api.get<User>("/auth/me");
-      return response.data;
-    },
+    queryFn: fetchCurrentUser,
     enabled,
     staleTime: 60_000,
   });
@@ -22,11 +26,21 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (payload: LoginPayload) => {
-      const response = await api.post<{ token: string; user: User }>("/auth/login", payload);
-      return response.data;
+      await api.post<{ token: string; user: User }>("/auth/login", payload);
+
+      try {
+        return await fetchCurrentUser();
+      } catch (error) {
+        throw new Error(
+          isApiUnauthorizedError(error) ? sessionValidationErrorMessage : getApiErrorMessage(error),
+        );
+      }
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(authQueryKey, data.user);
+    onSuccess: (user) => {
+      queryClient.setQueryData(authQueryKey, user);
+    },
+    onError: () => {
+      queryClient.removeQueries({ queryKey: authQueryKey });
     },
   });
 }
@@ -44,4 +58,3 @@ export function useLogout() {
     },
   });
 }
-

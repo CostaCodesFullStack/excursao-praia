@@ -1,4 +1,4 @@
-import type { CookieOptions } from "express";
+import type { CookieOptions, Request } from "express";
 import jwt from "jsonwebtoken";
 
 import { env } from "./env.js";
@@ -12,13 +12,38 @@ export function signAuthToken(user: { id: string; email: string }): string {
   } as jwt.SignOptions);
 }
 
-export function getAuthCookieOptions(): CookieOptions {
-  const isProduction = env.NODE_ENV === "production";
+function isHttpsRequest(req: Request) {
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+
+  return req.secure || forwardedProto === "https";
+}
+
+function isCrossOriginRequest(req: Request, isSecureRequest: boolean) {
+  const originHeader = req.get("origin");
+  const hostHeader = req.get("host");
+
+  if (!originHeader || !hostHeader) {
+    return false;
+  }
+
+  try {
+    const origin = new URL(originHeader);
+    const requestOrigin = `${isSecureRequest ? "https" : "http"}://${hostHeader}`;
+
+    return origin.origin !== requestOrigin;
+  } catch {
+    return false;
+  }
+}
+
+export function getAuthCookieOptions(req?: Request): CookieOptions {
+  const isSecureRequest = req ? isHttpsRequest(req) : new URL(env.FRONTEND_URL).protocol === "https:";
+  const isCrossOrigin = req ? isCrossOriginRequest(req, isSecureRequest) : false;
 
   return {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    secure: isCrossOrigin ? true : isSecureRequest,
+    sameSite: isCrossOrigin ? "none" : "lax",
     path: "/",
   };
 }

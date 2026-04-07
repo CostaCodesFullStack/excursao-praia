@@ -17,5 +17,8 @@ export function getApiErrorMessage(error: unknown) {
   return "Nao foi possivel concluir a acao";
 }
 
-export default api;
+export function isApiUnauthorizedError(error: unknown) {
+  return axios.isAxiosError(error) && error.response?.status === 401;
+}
 
+export default api;
