@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background: 210 33% 97%;
+  --foreground: 220 40% 14%;
+  --panel: 0 0% 100%;
+  --muted: 206 28% 92%;
+  --muted-foreground: 217 16% 42%;
+  --border: 214 24% 86%;
+  --ring: 191 96% 50%;
+  --accent: 191 93% 46%;
+  --accent-foreground: 210 40% 98%;
+  --success: 150 72% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning: 45 93% 54%;
+  --warning-foreground: 28 73% 15%;
+  --danger: 0 78% 59%;
+  --danger-foreground: 0 0% 100%;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: 223 48% 8%;
+  --foreground: 210 40% 96%;
+  --panel: 221 35% 13%;
+  --muted: 222 26% 17%;
+  --muted-foreground: 217 16% 71%;
+  --border: 223 23% 22%;
+  --ring: 189 100% 47%;
+  --accent: 189 100% 47%;
+  --accent-foreground: 222 47% 11%;
+  --success: 152 76% 41%;
+  --success-foreground: 0 0% 100%;
+  --warning: 45 96% 58%;
+  --warning-foreground: 26 83% 12%;
+  --danger: 0 84% 63%;
+  --danger-foreground: 0 0% 100%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-background font-body text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 22%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.08), transparent 24%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-3xl border border-white/10 bg-panel/90 shadow-soft backdrop-blur-xl;
+  }
+
+  .panel-muted {
+    @apply rounded-[1.5rem] border border-border/70 bg-muted/50;
+  }
+
+  .section-title {
+    @apply font-display text-3xl tracking-tight sm:text-4xl;
+  }
+
+  .skeleton {
+    @apply animate-shimmer rounded-2xl bg-[linear-gradient(90deg,rgba(148,163,184,0.16),rgba(148,163,184,0.3),rgba(148,163,184,0.16))] bg-[length:200%_100%];
+  }
+}
+

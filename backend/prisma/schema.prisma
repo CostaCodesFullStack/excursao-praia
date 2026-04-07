@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Passenger {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String?
+  seat      Int       @unique
+  total     Float     @default(0)
+  paid      Float     @default(0)
+  notes     String?
+  status    Status    @default(PENDENTE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  payments  Payment[]
+
+  @@index([status])
+}
+
+model Payment {
+  id          String    @id @default(cuid())
+  passengerId String
+  amount      Float
+  paidAt      DateTime  @default(now())
+  passenger   Passenger @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+
+  @@index([passengerId])
+}
+
+enum Status {
+  PAGO
+  PARCIAL
+  PENDENTE
+}
+

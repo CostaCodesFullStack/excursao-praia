@@ -1,0 +1,20 @@
+{
+  "name": "sistema-excursao",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace excursao-backend\" \"npm run dev --workspace excursao-frontend\"",
+    "build": "npm run build --workspace excursao-backend && npm run build --workspace excursao-frontend",
+    "prisma:generate": "npm run prisma:generate --workspace excursao-backend",
+    "prisma:migrate": "npm run prisma:migrate --workspace excursao-backend",
+    "seed": "npm run prisma:seed --workspace excursao-backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
+
