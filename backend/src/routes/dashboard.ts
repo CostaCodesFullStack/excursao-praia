@@ -1,4 +1,3 @@
-import { Status } from "@prisma/client";
 import { Router } from "express";
 
 import { prisma } from "../lib/prisma.js";
@@ -7,11 +6,24 @@ import { getPendingAmount } from "../utils/status.js";
 
 const router = Router();
 const TOTAL_SEATS = 50;
+type DashboardStatus = "PAGO" | "PARCIAL" | "PENDENTE";
+type DashboardPassenger = {
+  id: string;
+  total: number;
+  paid: number;
+  status: DashboardStatus;
+};
+type DashboardStatusGroup = {
+  status: DashboardStatus;
+  _count: {
+    _all: number;
+  };
+};
 
 router.get(
   "/",
   asyncHandler(async (_req, res) => {
-    const [passengers, groupedByStatus] = await Promise.all([
+    const [passengers, groupedByStatus] = (await Promise.all([
       prisma.passenger.findMany({
         select: {
           id: true,
@@ -26,7 +38,7 @@ router.get(
           _all: true,
         },
       }),
-    ]);
+    ])) as [DashboardPassenger[], DashboardStatusGroup[]];
 
     const totalExpected = passengers.reduce((sum, passenger) => sum + passenger.total, 0);
     const totalReceived = passengers.reduce((sum, passenger) => sum + passenger.paid, 0);
@@ -35,7 +47,7 @@ router.get(
       0,
     );
 
-    const statusCounts: Record<Status, number> = {
+    const statusCounts: Record<DashboardStatus, number> = {
       PAGO: 0,
       PARCIAL: 0,
       PENDENTE: 0,
@@ -62,4 +74,3 @@ router.get(
 );
 
 export default router;
-

@@ -1,10 +1,13 @@
 export type Status = "PAGO" | "PARCIAL" | "PENDENTE";
+export type PassengerStatusFilter = Status | "TODOS";
+export type PassengerSort = "seat" | "name" | "status" | "pending";
+export type PassengerOrder = "asc" | "desc";
 
 export type PassengerQuery = {
   search?: string;
-  status?: Status | "TODOS";
-  sort?: "seat" | "name" | "status" | "pending";
-  order?: "asc" | "desc";
+  status?: PassengerStatusFilter;
+  sort?: PassengerSort;
+  order?: PassengerOrder;
 };
 
 export type User = {
@@ -63,4 +66,3 @@ export type PassengerPayload = {
 export type PaymentPayload = {
   amount: number;
 };
-

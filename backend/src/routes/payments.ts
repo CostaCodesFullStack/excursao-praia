@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
 
@@ -51,7 +52,7 @@ router.post(
     const { amount } = req.body as z.infer<typeof paymentSchema>;
     const normalizedAmount = roundCurrency(amount);
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const passenger = await tx.passenger.findUnique({
         where: { id },
       });
@@ -101,4 +102,3 @@ router.post(
 );
 
 export default router;
-

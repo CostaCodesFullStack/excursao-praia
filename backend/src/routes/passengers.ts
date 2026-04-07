@@ -1,4 +1,4 @@
-import { Prisma, Status } from "@prisma/client";
+import { Prisma, type Passenger } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
 
@@ -6,7 +6,7 @@ import { prisma } from "../lib/prisma.js";
 import { validate } from "../middleware/validate.js";
 import { AppError, asyncHandler } from "../utils/http.js";
 import { roundCurrency } from "../utils/money.js";
-import { calculateStatus, getPendingAmount } from "../utils/status.js";
+import { calculateStatus, getPendingAmount, type PassengerStatus } from "../utils/status.js";
 
 const router = Router();
 
@@ -42,6 +42,10 @@ const passengerListQuerySchema = z.object({
 
 type PassengerInput = z.infer<typeof passengerBodySchema>;
 type PassengerListQuery = z.infer<typeof passengerListQuerySchema>;
+type PassengerWithPending<T extends { total: number; paid: number }> = T & { pending: number };
+type PassengerListItem = PassengerWithPending<
+  Pick<Passenger, "seat" | "name" | "status" | "total" | "paid">
+>;
 
 function normalizeOptionalString(value?: string) {
   const normalized = value?.trim();
@@ -59,7 +63,7 @@ function normalizePassengerInput(input: PassengerInput) {
   };
 }
 
-function enrichPassenger<T extends { total: number; paid: number }>(passenger: T) {
+function enrichPassenger<T extends { total: number; paid: number }>(passenger: T): PassengerWithPending<T> {
   return {
     ...passenger,
     pending: getPendingAmount(passenger.total, passenger.paid),
@@ -67,8 +71,8 @@ function enrichPassenger<T extends { total: number; paid: number }>(passenger: T
 }
 
 function sortPassengers(
-  left: ReturnType<typeof enrichPassenger>,
-  right: ReturnType<typeof enrichPassenger>,
+  left: PassengerListItem,
+  right: PassengerListItem,
   sort: PassengerListQuery["sort"],
   order: PassengerListQuery["order"],
 ) {
@@ -86,7 +90,7 @@ function sortPassengers(
     return (left.pending - right.pending) * direction;
   }
 
-  const weight: Record<Status, number> = {
+  const weight: Record<PassengerStatus, number> = {
     PENDENTE: 0,
     PARCIAL: 1,
     PAGO: 2,
@@ -103,7 +107,7 @@ router.get(
     const numericSeat = search && /^\d+$/.test(search) ? Number(search) : undefined;
 
     const filters: Prisma.PassengerWhereInput = {
-      ...(status !== "TODOS" ? { status: status as Status } : {}),
+      ...(status !== "TODOS" ? { status: status as PassengerStatus } : {}),
       ...(search
         ? {
             OR: [
@@ -234,4 +238,3 @@ router.delete(
 );
 
 export default router;
-

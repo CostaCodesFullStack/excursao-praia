@@ -7,6 +7,22 @@ import { asyncHandler } from "../utils/http.js";
 import { getPendingAmount } from "../utils/status.js";
 
 const router = Router();
+type ExportPassenger = {
+  seat: number;
+  name: string;
+  phone: string | null;
+  total: number;
+  paid: number;
+  status: string;
+  notes: string | null;
+  createdAt: Date;
+};
+type ExportColumnKey = "seat" | "name" | "phone" | "total" | "paid" | "pending" | "status" | "notes";
+type ExportColumn = {
+  key: ExportColumnKey;
+  label: string;
+  width: number;
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -35,11 +51,11 @@ function escapeCsvValue(value: string | number | null) {
 router.get(
   "/csv",
   asyncHandler(async (_req, res) => {
-    const passengers = await prisma.passenger.findMany({
+    const passengers = (await prisma.passenger.findMany({
       orderBy: {
         seat: "asc",
       },
-    });
+    })) as ExportPassenger[];
 
     const headers = [
       "Assento",
@@ -53,7 +69,7 @@ router.get(
       "Data de cadastro",
     ];
 
-    const rows = passengers.map((passenger) =>
+    const rows = passengers.map((passenger: ExportPassenger) =>
       [
         passenger.seat,
         passenger.name,
@@ -81,11 +97,11 @@ router.get(
 router.get(
   "/pdf",
   asyncHandler(async (_req, res) => {
-    const passengers = await prisma.passenger.findMany({
+    const passengers = (await prisma.passenger.findMany({
       orderBy: {
         seat: "asc",
       },
-    });
+    })) as ExportPassenger[];
 
     const totalExpected = passengers.reduce((sum, passenger) => sum + passenger.total, 0);
     const totalReceived = passengers.reduce((sum, passenger) => sum + passenger.paid, 0);
@@ -125,7 +141,7 @@ router.get(
 
     let y = doc.y + 18;
     const left = doc.page.margins.left;
-    const columns = [
+    const columns: ExportColumn[] = [
       { key: "seat", label: "Assento", width: 50 },
       { key: "name", label: "Nome", width: 160 },
       { key: "phone", label: "Telefone", width: 110 },
@@ -145,7 +161,7 @@ router.get(
         .fillAndStroke("#e2e8f0", "#e2e8f0");
 
       let cursor = left + 6;
-      columns.forEach((column) => {
+      columns.forEach((column: ExportColumn) => {
         doc
           .fillColor("#0f172a")
           .text(column.label, cursor, y, {
@@ -168,7 +184,7 @@ router.get(
 
     drawHeader();
 
-    passengers.forEach((passenger, index) => {
+    passengers.forEach((passenger: ExportPassenger, index: number) => {
       ensureSpace(22);
 
       if (index % 2 === 0) {
@@ -191,7 +207,7 @@ router.get(
       let cursor = left + 6;
       doc.font("Helvetica").fontSize(9).fillColor("#0f172a");
 
-      columns.forEach((column) => {
+      columns.forEach((column: ExportColumn) => {
         doc.text(values[column.key as keyof typeof values], cursor, y, {
           width: column.width - 8,
           ellipsis: true,

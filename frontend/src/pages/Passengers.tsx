@@ -10,16 +10,16 @@ import Button from "@/components/ui/Button";
 import Input, { inputClasses } from "@/components/ui/Input";
 import { useDeletePassenger, useExportPassengers, usePassengers } from "@/hooks/usePassengers";
 import { cn, formatCurrency, formatDate, STATUS_LABELS } from "@/lib/utils";
-import type { Passenger, PassengerQuery } from "@/types";
+import type { Passenger, PassengerOrder, PassengerQuery, PassengerSort, PassengerStatusFilter } from "@/types";
 
-const statusOptions: Array<PassengerQuery["status"]> = ["TODOS", "PAGO", "PARCIAL", "PENDENTE"];
-const sortOptions: Array<PassengerQuery["sort"]> = ["seat", "name", "status", "pending"];
+const statusOptions: PassengerStatusFilter[] = ["TODOS", "PAGO", "PARCIAL", "PENDENTE"];
+const sortOptions: PassengerSort[] = ["seat", "name", "status", "pending"];
 
 export default function PassengersPage() {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<PassengerQuery["status"]>("TODOS");
-  const [sort, setSort] = useState<PassengerQuery["sort"]>("seat");
-  const [order, setOrder] = useState<PassengerQuery["order"]>("asc");
+  const [status, setStatus] = useState<PassengerStatusFilter>("TODOS");
+  const [sort, setSort] = useState<PassengerSort>("seat");
+  const [order, setOrder] = useState<PassengerOrder>("asc");
   const [selectedPassenger, setSelectedPassenger] = useState<Passenger | null>(null);
   const [createSeat, setCreateSeat] = useState<number | null>(null);
   const [paymentPassengerId, setPaymentPassengerId] = useState<string | null>(null);
@@ -123,7 +123,7 @@ export default function PassengersPage() {
               value={status}
               onChange={(event) => {
                 startTransition(() => {
-                  setStatus(event.target.value as PassengerQuery["status"]);
+                  setStatus(event.target.value as PassengerStatusFilter);
                 });
               }}
             >
@@ -145,7 +145,7 @@ export default function PassengersPage() {
               value={sort}
               onChange={(event) => {
                 startTransition(() => {
-                  setSort(event.target.value as PassengerQuery["sort"]);
+                  setSort(event.target.value as PassengerSort);
                 });
               }}
             >
@@ -170,7 +170,7 @@ export default function PassengersPage() {
               value={order}
               onChange={(event) => {
                 startTransition(() => {
-                  setOrder(event.target.value as PassengerQuery["order"]);
+                  setOrder(event.target.value as PassengerOrder);
                 });
               }}
             >
