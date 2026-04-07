@@ -1,359 +1,383 @@
-# Deploy em VM Azure (Linux)
+# Deploy em VM Azure (Ubuntu + Nginx + PM2 + PostgreSQL local)
 
-## PASSO 1: Conectar na VM
+Este guia foi ajustado para a stack real deste projeto:
 
-```bash
-ssh seu_usuario@seu_ip_azure.com
-# Ou com porta customizada:
-ssh -p 2222 seu_usuario@seu_ip_azure.com
+- frontend React/Vite compilado em arquivos estaticos
+- backend Node/Express com Prisma
+- PostgreSQL rodando na propria VM
+- Nginx servindo o frontend e encaminhando `/api` para o backend
+- PM2 mantendo somente o backend no ar
+
+## Antes de começar
+
+Confirme estes itens na Azure:
+
+1. A VM tem IP publico.
+2. O DNS do dominio aponta para esse IP.
+3. A Network Security Group da VM permite entrada em `22`, `80` e `443`.
+4. Voce esta usando uma distro Ubuntu recente, de preferencia `22.04` ou `24.04`.
+
+## Visao geral da arquitetura
+
+```text
+Internet
+  -> Nginx :80 / :443
+    -> /            => frontend/dist
+    -> /api/*       => backend Node em 127.0.0.1:3333
+    -> /health      => backend Node em 127.0.0.1:3333
+
+PostgreSQL local
+  -> localhost:5432
 ```
 
----
-
-## PASSO 2: Instalar Node.js
+## 1. Conectar na VM
 
 ```bash
-# Atualizar sistema
-sudo apt update && sudo apt upgrade -y
+ssh azureuser@SEU_IP_PUBLICO
+```
 
-# Instalar Node.js 20 (LTS)
+Se usar chave SSH:
+
+```bash
+ssh -i ~/.ssh/sua-chave azureuser@SEU_IP_PUBLICO
+```
+
+## 2. Atualizar o sistema e instalar pacotes base
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y git curl nginx postgresql postgresql-contrib build-essential
+```
+
+## 3. Instalar Node.js 20
+
+```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
-sudo apt install -y npm
 
-# Verificar instalação
 node --version
 npm --version
 ```
 
----
-
-## PASSO 3: Instalar PostgreSQL
+## 4. Preparar pasta do projeto
 
 ```bash
-# Instalar PostgreSQL
-sudo apt install -y postgresql postgresql-contrib
+sudo mkdir -p /var/www
+sudo chown -R $USER:$USER /var/www
 
-# Iniciar serviço
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
-
-# Criar usuário e banco de dados
-sudo -u postgres psql
-```
-
-**Dentro do psql (postgres=#):**
-
-```sql
-CREATE USER excursao_user WITH PASSWORD 'SenhaForte123!@#';
-CREATE DATABASE excursao_prod;
-ALTER DATABASE excursao_prod OWNER TO excursao_user;
-GRANT CONNECT ON DATABASE excursao_prod TO excursao_user;
-GRANT USAGE ON SCHEMA public TO excursao_user;
-GRANT CREATE ON SCHEMA public TO excursao_user;
-\q
-```
-
----
-
-## PASSO 4: Clonar Repositório
-
-```bash
-# Ir para diretório de apps (opcional)
 cd /var/www
-
-# Clonar projeto
 git clone https://github.com/CostaCodesFullStack/excursao.git
 cd excursao
+```
 
-# Se repo é privada, gere Personal Access Token no GitHub:
-# https://github.com/settings/tokens
+Se o repositorio for privado:
+
+```bash
 git clone https://SEU_TOKEN@github.com/CostaCodesFullStack/excursao.git
 ```
 
----
-
-## PASSO 5: Configurar Backend
+## 5. Configurar PostgreSQL
 
 ```bash
-cd backend
-
-# Instalar dependências
-npm install
-
-# Criar arquivo .env
-nano .env
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
+sudo -u postgres psql
 ```
 
-**Cole exatamente:**
+Dentro do `psql`:
 
-```env
-DATABASE_URL="postgresql://excursao_user:SenhaForte123!@#@localhost:5432/excursao_prod"
-JWT_SECRET="77b09e87d0a45c8f49cb5806f8a33aad54b739fc300dd6738470267ebd0b2d10"
-FRONTEND_URL="https://seu-dominio.com"
-NODE_ENV=production
-PORT=3333
-ADMIN_EMAIL=pikadagalaxy157@gmail.com
-ADMIN_PASSWORD=Ca200306@
-EXCURSION_NAME=Excursao Principal
+```sql
+CREATE USER excursao_user WITH PASSWORD 'SUA_SENHA_FORTE';
+CREATE DATABASE excursao_prod OWNER excursao_user;
+\q
 ```
 
-**Salvar:** `Ctrl + O` → Enter → `Ctrl + X`
-
----
-
-## PASSO 6: Executar Migrations
+Teste rapido:
 
 ```bash
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:seed
-```
-
----
-
-## PASSO 7: Build do Backend
-
-```bash
-npm run build
-```
-
----
-
-## PASSO 8: Instalar PM2 (para manter app rodando)
-
-```bash
-# Instalar PM2 globalmente
-sudo npm install -g pm2
-
-# Iniciar app com PM2
-pm2 start dist/src/server.js --name "excursao-backend"
-
-# Guardar configuração
-pm2 save
-pm2 startup
-```
-
----
-
-## PASSO 9: Compilar e Iniciar Frontend
-
-```bash
-cd ../frontend
-
-# Instalar dependências
-npm install
-
-# Build para produção
-VITE_API_URL=https://seu-dominio.com npm run build
-
-# Instalar servidor estático
-sudo npm install -g serve
-
-# Iniciar
-pm2 start "serve -s dist -l 3000" --name "excursao-frontend"
-```
-
----
-
-## PASSO 10: Instalar Nginx (Reverse Proxy)
-
-```bash
-# Instalar Nginx
-sudo apt install -y nginx
-
-# Criar arquivo de configuração
-sudo nano /etc/nginx/sites-available/excursao
-```
-
-**Cole exatamente:**
-
-```nginx
-upstream backend {
-    server localhost:3333;
-}
-
-upstream frontend {
-    server localhost:3000;
-}
-
-server {
-    listen 80;
-    server_name seu-dominio.com;
-
-    # Redirecionar HTTP → HTTPS (depois)
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name seu-dominio.com;
-
-    ssl_certificate /etc/letsencrypt/live/seu-dominio.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/seu-dominio.com/privkey.pem;
-
-    # Frontend
-    location / {
-        proxy_pass http://frontend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # API Backend
-    location /api {
-        proxy_pass http://backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-**Salvar:** `Ctrl + O` → Enter → `Ctrl + X`
-
----
-
-## PASSO 11: Ativar Nginx
-
-```bash
-# Criar link simbólico
-sudo ln -s /etc/nginx/sites-available/excursao /etc/nginx/sites-enabled/
-
-# Testar configuração
-sudo nginx -t
-
-# Iniciar Nginx
-sudo systemctl start nginx
-sudo systemctl enable nginx
-```
-
----
-
-## PASSO 12: SSL com Let's Encrypt (HTTPS)
-
-```bash
-# Instalar Certbot
-sudo apt install -y certbot python3-certbot-nginx
-
-# Gerar certificado
-sudo certbot certonly --nginx -d seu-dominio.com
-
-# Renovação automática já ativa
-sudo systemctl enable certbot.timer
-```
-
----
-
-## PASSO 13: Abrir Firewall
-
-```bash
-# Se usando UFW
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw enable
-```
-
----
-
-## ✅ Aplicação está rodando!
-
-```bash
-# Acessar em:
-https://seu-dominio.com
-```
-
----
-
-## 📊 Comandos Úteis
-
-### Verificar Status
-
-```bash
-# Ver apps PM2
-pm2 list
-
-# Ver logs
-pm2 logs excursao-backend
-
-# Ver status do Nginx
-sudo systemctl status nginx
-```
-
-### Reiniciar Serviços
-
-```bash
-# Backend
-pm2 restart excursao-backend
-
-# Frontend
-pm2 restart excursao-frontend
-
-# Nginx
-sudo systemctl restart nginx
-```
-
-### Atualizar Código
-
-```bash
-cd /var/www/excursao
-
-# Puxar novo código
-git pull
-
-# Rebuild backend
-cd backend
-npm run build
-pm2 restart excursao-backend
-
-# Rebuild frontend
-cd ../frontend
-npm run build
-pm2 restart excursao-frontend
-```
-
----
-
-## 🚨 Troubleshooting
-
-### Conexão recusada no PM2
-
-```bash
-pm2 delete all
-pm2 start dist/src/server.js --name "excursao-backend"
-```
-
-### PostgreSQL não conecta
-
-```bash
-sudo systemctl restart postgresql
 psql -h localhost -U excursao_user -d excursao_prod -W
 ```
 
-### Nginx não inicia
+## 6. Criar os arquivos de ambiente
+
+O repositorio agora tem exemplos especificos para producao.
+
+### Backend
 
 ```bash
-sudo nginx -t  # Ver erro
-sudo nano /etc/nginx/sites-available/excursao  # Corrigir
+cp backend/.env.production.example backend/.env
+nano backend/.env
 ```
 
-### Certificado SSL expirado
+Preencha com os seus valores:
+
+```env
+DATABASE_URL="postgresql://excursao_user:SUA_SENHA_FORTE@localhost:5432/excursao_prod"
+JWT_SECRET="COLE_UMA_CHAVE_FORTE_AQUI"
+JWT_EXPIRES_IN="7d"
+FRONTEND_URL="https://seu-dominio.com"
+NODE_ENV="production"
+PORT=3333
+ADMIN_EMAIL="admin@seu-dominio.com"
+ADMIN_PASSWORD="TROQUE_ESSA_SENHA"
+EXCURSION_NAME="Excursao Principal"
+```
+
+Gerar uma chave forte para `JWT_SECRET`:
 
 ```bash
-sudo certbot renew
+openssl rand -hex 32
 ```
 
----
+### Frontend
 
-## 💰 Custos Azure VM
+```bash
+cp frontend/.env.production.example frontend/.env.production
+nano frontend/.env.production
+```
 
-- **B1s (1 vCPU, 1GB RAM):** ~$10/mês
-- **B2s (2 vCPU, 4GB RAM):** ~$40/mês
-- **PostgreSQL:** Incluso (local)
+Conteudo recomendado:
 
-Muito mais barato que Railway para produção! 🚀
+```env
+VITE_API_URL="/api"
+```
+
+Importante:
+
+- nao use apenas `https://seu-dominio.com` em `VITE_API_URL`
+- se o valor nao terminar em `/api`, o frontend vai chamar rotas erradas
+- com `VITE_API_URL="/api"`, frontend e backend funcionam no mesmo dominio sem CORS estranho
+
+## 7. Instalar dependencias e preparar banco
+
+Na raiz do projeto:
+
+```bash
+cd /var/www/excursao
+npm ci
+```
+
+Executar migrations de producao:
+
+```bash
+npm run prisma:deploy
+```
+
+Criar o usuario admin inicial:
+
+```bash
+npm run seed
+```
+
+Observacao:
+
+- em producao use `npm run prisma:deploy`
+- nao use `npm run prisma:migrate` na VM, porque esse script roda `prisma migrate dev`
+
+## 8. Gerar build do projeto
+
+```bash
+npm run build
+```
+
+O comando acima gera:
+
+- backend em `backend/dist`
+- frontend em `frontend/dist`
+
+## 9. Subir o backend com PM2
+
+Instale o PM2:
+
+```bash
+sudo npm install -g pm2
+```
+
+Inicie usando o arquivo versionado do repositorio:
+
+```bash
+cd /var/www/excursao
+pm2 start ecosystem.config.cjs
+pm2 save
+```
+
+Para habilitar o PM2 no boot:
+
+```bash
+pm2 startup systemd -u $USER --hp $HOME
+```
+
+Se o PM2 imprimir um comando com `sudo env PATH=...`, execute exatamente o comando exibido.
+
+Verifique:
+
+```bash
+pm2 list
+pm2 logs excursao-backend
+curl http://127.0.0.1:3333/health
+```
+
+## 10. Configurar Nginx
+
+Copie o arquivo de exemplo do repositorio:
+
+```bash
+sudo cp deploy/nginx.excursao.conf.example /etc/nginx/sites-available/excursao
+sudo nano /etc/nginx/sites-available/excursao
+```
+
+Troque `seu-dominio.com` pelo seu dominio real.
+
+Ative o site:
+
+```bash
+sudo ln -sf /etc/nginx/sites-available/excursao /etc/nginx/sites-enabled/excursao
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
+sudo systemctl enable nginx
+```
+
+Nesse ponto:
+
+- `http://seu-dominio.com` deve abrir o frontend
+- `http://seu-dominio.com/health` deve responder com `{ "ok": true }`
+
+## 11. Habilitar HTTPS com Let's Encrypt
+
+Instale o Certbot:
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+```
+
+Gerar certificado e deixar o Nginx ser ajustado automaticamente:
+
+```bash
+sudo certbot --nginx -d seu-dominio.com
+```
+
+Se tambem usar `www`:
+
+```bash
+sudo certbot --nginx -d seu-dominio.com -d www.seu-dominio.com
+```
+
+Verifique a renovacao automatica:
+
+```bash
+sudo systemctl status certbot.timer
+```
+
+## 12. Firewall da VM
+
+Se estiver usando UFW dentro do Ubuntu:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
+sudo ufw status
+```
+
+Lembrete importante:
+
+- abrir UFW nao substitui a regra da Azure
+- a porta precisa estar liberada tanto no Ubuntu quanto na Network Security Group
+
+## 13. Validacao final
+
+Rode estes testes:
+
+```bash
+curl http://127.0.0.1:3333/health
+curl -I http://seu-dominio.com
+curl -I https://seu-dominio.com
+pm2 list
+sudo nginx -t
+sudo systemctl status nginx --no-pager
+```
+
+Depois acesse no navegador:
+
+```text
+https://seu-dominio.com
+```
+
+## Atualizar o projeto depois
+
+```bash
+cd /var/www/excursao
+git pull
+npm ci
+npm run prisma:deploy
+npm run build
+pm2 restart excursao-backend
+sudo systemctl reload nginx
+```
+
+Se mudou a senha do admin no `.env`, rode de novo:
+
+```bash
+npm run seed
+```
+
+## Troubleshooting rapido
+
+### Backend nao sobe no PM2
+
+```bash
+pm2 logs excursao-backend
+cat backend/.env
+ls backend/dist/src
+```
+
+### Nginx responde 502
+
+Isso quase sempre significa que o backend nao esta ouvindo em `127.0.0.1:3333`.
+
+Verifique:
+
+```bash
+pm2 list
+curl http://127.0.0.1:3333/health
+```
+
+### Login nao funciona em producao
+
+Confira estes tres pontos:
+
+1. `FRONTEND_URL` esta com `https://seu-dominio.com`.
+2. O site ja esta em HTTPS valido.
+3. `frontend/.env.production` esta com `VITE_API_URL="/api"`.
+
+Observacao importante:
+
+- com `NODE_ENV="production"`, o cookie de login fica `secure`
+- isso significa que o login nao vai funcionar corretamente em HTTP puro
+
+### Prisma falha na VM
+
+Confirme:
+
+```bash
+cat backend/.env
+psql -h localhost -U excursao_user -d excursao_prod -W
+```
+
+Depois tente:
+
+```bash
+npm run prisma:deploy
+```
+
+## Arquivos uteis adicionados no repositorio
+
+- `backend/.env.production.example`
+- `frontend/.env.production.example`
+- `deploy/nginx.excursao.conf.example`
+- `ecosystem.config.cjs`
+- `backend/prisma/migrations/20260407000100_init/migration.sql`
+
+Esses arquivos deixam o deploy na Azure bem mais previsivel do que depender de comandos manuais espalhados.

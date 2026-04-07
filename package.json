@@ -9,12 +9,14 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace excursao-backend\" \"npm run dev --workspace excursao-frontend\"",
     "build": "npm run build --workspace excursao-backend && npm run build --workspace excursao-frontend",
+    "build:backend": "npm run build --workspace excursao-backend",
+    "build:frontend": "npm run build --workspace excursao-frontend",
     "prisma:generate": "npm run prisma:generate --workspace excursao-backend",
     "prisma:migrate": "npm run prisma:migrate --workspace excursao-backend",
+    "prisma:deploy": "npm run prisma:deploy --workspace excursao-backend",
     "seed": "npm run prisma:seed --workspace excursao-backend"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }
 }
-
