@@ -1,4 +1,4 @@
-import { Prisma, type Passenger } from "@prisma/client";
+import type { Prisma, Passenger } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
 
@@ -6,7 +6,11 @@ import { prisma } from "../lib/prisma.js";
 import { validate } from "../middleware/validate.js";
 import { AppError, asyncHandler } from "../utils/http.js";
 import { roundCurrency } from "../utils/money.js";
-import { calculateStatus, getPendingAmount, type PassengerStatus } from "../utils/status.js";
+import {
+  calculateStatus,
+  getPendingAmount,
+  type PassengerStatus,
+} from "../utils/status.js";
 
 const router = Router();
 
@@ -18,7 +22,11 @@ const passengerBodySchema = z
   .object({
     name: z.string().trim().min(1, "Nome obrigatorio"),
     phone: z.string().trim().max(40).optional().or(z.literal("")),
-    seat: z.coerce.number().int().min(1, "Assento deve ser entre 1 e 50").max(50, "Assento deve ser entre 1 e 50"),
+    seat: z.coerce
+      .number()
+      .int()
+      .min(1, "Assento deve ser entre 1 e 50")
+      .max(50, "Assento deve ser entre 1 e 50"),
     total: z.coerce.number().min(0, "Valor total nao pode ser negativo"),
     paid: z.coerce.number().min(0, "Valor pago nao pode ser negativo"),
     notes: z.string().trim().max(1000).optional().or(z.literal("")),
@@ -42,7 +50,9 @@ const passengerListQuerySchema = z.object({
 
 type PassengerInput = z.infer<typeof passengerBodySchema>;
 type PassengerListQuery = z.infer<typeof passengerListQuerySchema>;
-type PassengerWithPending<T extends { total: number; paid: number }> = T & { pending: number };
+type PassengerWithPending<T extends { total: number; paid: number }> = T & {
+  pending: number;
+};
 type PassengerListItem = PassengerWithPending<
   Pick<Passenger, "seat" | "name" | "status" | "total" | "paid">
 >;
@@ -63,7 +73,9 @@ function normalizePassengerInput(input: PassengerInput) {
   };
 }
 
-function enrichPassenger<T extends { total: number; paid: number }>(passenger: T): PassengerWithPending<T> {
+function enrichPassenger<T extends { total: number; paid: number }>(
+  passenger: T,
+): PassengerWithPending<T> {
   return {
     ...passenger,
     pending: getPendingAmount(passenger.total, passenger.paid),
@@ -75,7 +87,7 @@ function sortPassengers(
   right: PassengerListItem,
   sort: PassengerListQuery["sort"],
   order: PassengerListQuery["order"],
-) {
+): number {
   const direction = order === "desc" ? -1 : 1;
 
   if (sort === "seat") {
@@ -96,7 +108,11 @@ function sortPassengers(
     PAGO: 2,
   };
 
-  return (weight[left.status] - weight[right.status]) * direction;
+  return (
+    (weight[left.status as PassengerStatus] -
+      weight[right.status as PassengerStatus]) *
+    direction
+  );
 }
 
 router.get(
@@ -104,7 +120,8 @@ router.get(
   validate({ query: passengerListQuerySchema }),
   asyncHandler(async (req, res) => {
     const { search, status, sort, order } = req.query as PassengerListQuery;
-    const numericSeat = search && /^\d+$/.test(search) ? Number(search) : undefined;
+    const numericSeat =
+      search && /^\d+$/.test(search) ? Number(search) : undefined;
 
     const filters: Prisma.PassengerWhereInput = {
       ...(status !== "TODOS" ? { status: status as PassengerStatus } : {}),
@@ -113,7 +130,9 @@ router.get(
             OR: [
               { name: { contains: search, mode: "insensitive" } },
               { phone: { contains: search, mode: "insensitive" } },
-              ...(numericSeat && numericSeat >= 1 && numericSeat <= 50 ? [{ seat: numericSeat }] : []),
+              ...(numericSeat && numericSeat >= 1 && numericSeat <= 50
+                ? [{ seat: numericSeat }]
+                : []),
             ],
           }
         : {}),

@@ -1,11 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
-import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
 import { AppError } from "../utils/http.js";
 
 export function notFound(req: Request, _res: Response, next: NextFunction) {
-  next(new AppError(404, `Rota nao encontrada: ${req.method} ${req.originalUrl}`));
+  next(
+    new AppError(404, `Rota nao encontrada: ${req.method} ${req.originalUrl}`),
+  );
 }
 
 export function errorHandler(
@@ -37,24 +38,22 @@ export function errorHandler(
     return;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    if (error.code === "P2002") {
-      res.status(409).json({
-        message: "Ja existe um passageiro usando este assento",
-        target: error.meta?.target,
-      });
-      return;
-    }
-
-    if (error.code === "P2025") {
-      res.status(404).json({
-        message: "Registro nao encontrado",
-      });
-      return;
-    }
+  if ((error as any)?.code === "P2002") {
+    res.status(409).json({
+      message: "Ja existe um passageiro usando este assento",
+      target: (error as any)?.meta?.target,
+    });
+    return;
   }
 
-  if (error instanceof Prisma.PrismaClientValidationError) {
+  if ((error as any)?.code === "P2025") {
+    res.status(404).json({
+      message: "Registro nao encontrado",
+    });
+    return;
+  }
+
+  if ((error as any)?.name === "PrismaClientValidationError") {
     res.status(400).json({
       message: "Dados inconsistentes para operacao no banco",
     });
@@ -81,4 +80,3 @@ export function errorHandler(
     message: "Erro interno do servidor",
   });
 }
-
