@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.app.tsbuildinfo",
+    "ignoreDeprecations": "5.0",
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": [
@@ -20,10 +21,9 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ]
     }
   },

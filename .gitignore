@@ -3,6 +3,7 @@ dist
 .turbo
 .vite
 coverage
+*.tsbuildinfo
 *.log
 .env
 .env.local
@@ -10,4 +11,14 @@ coverage
 !.env.example
 frontend/dist
 backend/dist
+frontend/vite.config.js
+frontend/vite.config.d.ts
+frontend/tailwind.config.js
+frontend/tailwind.config.d.ts
 
+
+DESENVOLVIMENTO_LOCAL.md
+POSTGRES_SETUP.md
+POSTGRES_SETUP_SIMPLES.md
+POSTGRESQL_WINDOWS.md
+RAILWAY_SETUP.md

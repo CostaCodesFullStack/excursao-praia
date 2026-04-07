@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "composite": true,
+    "outDir": "./node_modules/.cache/tsconfig.node",
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.node.tsbuildinfo",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true
@@ -10,4 +12,3 @@
     "tailwind.config.ts"
   ]
 }
-
