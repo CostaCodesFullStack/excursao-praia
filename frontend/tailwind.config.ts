@@ -39,7 +39,7 @@ const config: Config = {
         soft: "0 24px 60px -32px rgba(15, 23, 42, 0.45)",
       },
       fontFamily: {
-        body: ["DM Sans", "sans-serif"],
+        body: ["Plus Jakarta Sans", "sans-serif"],
         display: ["Syne", "sans-serif"],
       },
       keyframes: {

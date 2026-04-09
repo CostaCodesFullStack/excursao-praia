@@ -28,18 +28,18 @@ export const STATUS_LABELS: Record<Status, string> = {
 
 export function getStatusClasses(status: Status | "FREE") {
   if (status === "PAGO") {
-    return "bg-success/15 text-success ring-1 ring-success/25";
+    return "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40";
   }
 
   if (status === "PARCIAL") {
-    return "bg-warning/20 text-warning-foreground ring-1 ring-warning/30";
+    return "bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/40";
   }
 
   if (status === "PENDENTE") {
-    return "bg-danger/15 text-danger ring-1 ring-danger/25";
+    return "bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/40";
   }
 
-  return "bg-muted text-muted-foreground ring-1 ring-border";
+  return "bg-slate-700/40 text-slate-400 ring-1 ring-slate-600/40";
 }
 
 export function downloadBlob(blob: Blob, fileName: string) {
