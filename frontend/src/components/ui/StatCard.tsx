@@ -26,15 +26,19 @@ export default function StatCard({
   tone = "default",
 }: StatCardProps) {
   return (
-    <article className="panel relative overflow-hidden p-4 sm:p-6">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent/0 via-accent/70 to-accent/0" />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <p className="truncate text-xs text-muted-foreground sm:text-sm">{label}</p>
-          <p className="font-display text-2xl tracking-tight text-foreground sm:text-3xl">{value}</p>
-          {caption ? <p className="hidden text-xs text-muted-foreground sm:block sm:text-sm">{caption}</p> : null}
+    <article className="panel relative overflow-hidden p-3 sm:p-6">
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-accent/0 via-accent/70 to-accent/0" />
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground sm:text-xs">{label}</p>
+          <p className="mt-1 text-xl font-bold tracking-tight text-foreground sm:mt-2 sm:font-display sm:text-3xl">{value}</p>
+          {caption ? <p className="mt-0.5 hidden text-xs text-muted-foreground sm:block">{caption}</p> : null}
         </div>
-        {icon ? <div className={cn("flex-shrink-0 rounded-xl p-2.5 sm:rounded-2xl sm:p-3", toneClasses[tone])}>{icon}</div> : null}
+        {icon ? (
+          <div className={cn("flex-shrink-0 rounded-lg p-1.5 sm:rounded-2xl sm:p-3", toneClasses[tone])}>
+            <span className="block [&>svg]:h-3.5 [&>svg]:w-3.5 sm:[&>svg]:h-5 sm:[&>svg]:w-5">{icon}</span>
+          </div>
+        ) : null}
       </div>
     </article>
   );
