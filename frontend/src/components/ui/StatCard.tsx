@@ -26,15 +26,15 @@ export default function StatCard({
   tone = "default",
 }: StatCardProps) {
   return (
-    <article className="panel relative overflow-hidden p-5 sm:p-6">
+    <article className="panel relative overflow-hidden p-4 sm:p-6">
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent/0 via-accent/70 to-accent/0" />
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="font-display text-3xl tracking-tight text-foreground">{value}</p>
-          {caption ? <p className="text-sm text-muted-foreground">{caption}</p> : null}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1.5">
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">{label}</p>
+          <p className="font-display text-2xl tracking-tight text-foreground sm:text-3xl">{value}</p>
+          {caption ? <p className="hidden text-xs text-muted-foreground sm:block sm:text-sm">{caption}</p> : null}
         </div>
-        {icon ? <div className={cn("rounded-2xl p-3", toneClasses[tone])}>{icon}</div> : null}
+        {icon ? <div className={cn("flex-shrink-0 rounded-xl p-2.5 sm:rounded-2xl sm:p-3", toneClasses[tone])}>{icon}</div> : null}
       </div>
     </article>
   );

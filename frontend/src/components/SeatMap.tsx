@@ -16,7 +16,7 @@ function SeatButton({
   onClick: (seat: number, passenger?: Passenger) => void;
 }) {
   if (!seat) {
-    return <div className="min-h-[74px]" />;
+    return <div className="min-h-[58px] sm:min-h-[74px]" />;
   }
 
   return (
@@ -24,18 +24,18 @@ function SeatButton({
       type="button"
       onClick={() => onClick(seat, passenger)}
       className={cn(
-        "min-h-[74px] rounded-3xl p-3 text-left transition hover:-translate-y-0.5",
+        "min-h-[58px] rounded-2xl p-2 text-left transition hover:-translate-y-0.5 active:scale-95 sm:min-h-[74px] sm:rounded-3xl sm:p-3",
         getStatusClasses(passenger?.status ?? "FREE"),
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <span className="font-display text-xl">{seat}</span>
-        <span className="text-[10px] uppercase tracking-[0.22em]">
+      <div className="flex items-start justify-between gap-1">
+        <span className="font-display text-base sm:text-xl">{seat}</span>
+        <span className="hidden text-[10px] uppercase tracking-[0.22em] sm:inline">
           {passenger ? passenger.status : "Livre"}
         </span>
       </div>
-      <p className="mt-3 line-clamp-1 text-sm font-medium">
-        {passenger ? passenger.name : "Disponivel"}
+      <p className="mt-1 line-clamp-1 text-xs font-medium sm:mt-3 sm:text-sm">
+        {passenger ? passenger.name.split(" ")[0] : "Livre"}
       </p>
     </button>
   );

@@ -63,18 +63,18 @@ export default function PassengersPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className="panel p-6 sm:p-8">
+    <div className="space-y-5">
+      <section className="panel p-5 sm:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.26em] text-accent">Passageiros</p>
             <h1 className="section-title mt-2">Lista completa com busca, filtros e acoes rapidas.</h1>
-            <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
               A tabela e os cards abaixo usam os dados do backend em tempo real para refletir o estado atual do onibus.
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
             <Button variant="secondary" icon={<Download className="h-4 w-4" />} onClick={() => exportFile("csv")} loading={exportPassengers.isPending}>
               Exportar CSV
             </Button>
@@ -82,6 +82,7 @@ export default function PassengersPage() {
               Exportar PDF
             </Button>
             <Button
+              className="col-span-2 sm:col-span-1"
               icon={<Plus className="h-4 w-4" />}
               onClick={() => {
                 setCreateSeat(1);
@@ -94,9 +95,9 @@ export default function PassengersPage() {
         </div>
       </section>
 
-      <section className="panel p-5">
-        <div className="grid gap-4 lg:grid-cols-[1.6fr_repeat(3,minmax(0,1fr))]">
-          <div className="space-y-2">
+      <section className="panel p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-[1.6fr_repeat(3,minmax(0,1fr))]">
+          <div className="col-span-2 space-y-2 lg:col-span-1">
             <label className="text-sm font-medium text-foreground">Busca</label>
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

@@ -19,11 +19,11 @@ export default function DashboardPage() {
 
   if (dashboard.isPending) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div className="skeleton h-36 w-full" />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="skeleton h-36 w-full" />
+            <div key={index} className="skeleton h-32 w-full" />
           ))}
         </div>
       </div>
@@ -41,30 +41,30 @@ export default function DashboardPage() {
   const highlightPending = (pendingPassengers.data ?? []).filter((item) => item.pending > 0).slice(0, 4);
 
   return (
-    <div className="space-y-6">
-      <section className="panel overflow-hidden p-6 sm:p-8">
+    <div className="space-y-5">
+      <section className="panel overflow-hidden p-5 sm:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-3">
+          <div className="space-y-2">
             <p className="text-sm uppercase tracking-[0.28em] text-accent">Resumo da excursao</p>
             <h1 className="section-title">Visao geral para decidir rapido e agir melhor.</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+            <p className="max-w-2xl text-sm text-muted-foreground">
               Acompanhe ocupacao, valores recebidos e pendencias sem precisar sair do celular.
             </p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link to="/bus">
-              <Button variant="secondary" icon={<LayoutGrid className="h-4 w-4" />}>
+              <Button variant="secondary" icon={<LayoutGrid className="h-4 w-4" />} className="w-full sm:w-auto">
                 Abrir mapa
               </Button>
             </Link>
             <Link to="/passengers">
-              <Button icon={<ArrowRight className="h-4 w-4" />}>Ver passageiros</Button>
+              <Button icon={<ArrowRight className="h-4 w-4" />} className="w-full sm:w-auto">Ver passageiros</Button>
             </Link>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <StatCard
             label="Lugares vendidos"
             value={`${dashboard.data.soldSeats}`}

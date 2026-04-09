@@ -39,41 +39,41 @@ export default function BusMapPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className="panel p-6 sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-5">
+      <section className="panel p-5 sm:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.26em] text-accent">Mapa do onibus</p>
             <h1 className="section-title mt-2">Ocupacao visual dos 50 assentos.</h1>
-            <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
               Toque em um assento livre para cadastrar. Toque em um assento ocupado para editar dados ou registrar recebimento.
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-4">
-            <div className="panel-muted p-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="panel-muted p-3 sm:p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pago</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{paidSeats}</p>
+              <p className="mt-1.5 text-2xl font-semibold text-foreground">{paidSeats}</p>
             </div>
-            <div className="panel-muted p-4">
+            <div className="panel-muted p-3 sm:p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Parcial</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{partialSeats}</p>
+              <p className="mt-1.5 text-2xl font-semibold text-foreground">{partialSeats}</p>
             </div>
-            <div className="panel-muted p-4">
+            <div className="panel-muted p-3 sm:p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pendente</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{pendingSeats}</p>
+              <p className="mt-1.5 text-2xl font-semibold text-foreground">{pendingSeats}</p>
             </div>
-            <div className="panel-muted p-4">
+            <div className="panel-muted p-3 sm:p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Previsto</p>
-              <p className="mt-2 text-lg font-semibold text-foreground">{formatCurrency(expected)}</p>
+              <p className="mt-1.5 text-lg font-semibold text-foreground">{formatCurrency(expected)}</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_300px]">
+      <section className="grid gap-5 xl:grid-cols-[1fr_300px]">
         <div className="panel p-4 sm:p-6">
-          <div className="mb-5 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap gap-2">
             <Badge tone="success">Verde: pago integral</Badge>
             <Badge tone="warning">Amarelo: parcial</Badge>
             <Badge tone="danger">Vermelho: sem pagamento</Badge>
@@ -91,7 +91,7 @@ export default function BusMapPage() {
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
           <div className="panel p-5">
             <div className="flex items-start justify-between gap-3">
               <div>

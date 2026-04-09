@@ -57,10 +57,15 @@ export default function Modal({
       />
       <div
         className={cn(
-          "relative flex max-h-[92vh] w-full animate-slide-up flex-col overflow-hidden rounded-t-[2rem] border border-border/80 bg-panel/95 shadow-soft backdrop-blur-xl sm:max-h-[88vh] sm:max-w-2xl sm:rounded-3xl",
+          "relative flex max-h-[92dvh] w-full animate-slide-up flex-col overflow-hidden rounded-t-[2rem] border border-border/80 bg-panel/95 shadow-soft backdrop-blur-xl sm:max-h-[88vh] sm:max-w-2xl sm:rounded-3xl",
           className,
         )}
       >
+        {/* Drag handle indicator - visible only on mobile */}
+        <div className="flex justify-center pt-3 sm:hidden">
+          <div className="h-1 w-10 rounded-full bg-border/70" />
+        </div>
+
         <div className="flex items-start justify-between gap-4 border-b border-border/70 px-5 py-4 sm:px-6">
           <div className="space-y-1">
             <h2 className="font-display text-xl tracking-tight text-foreground">{title}</h2>
@@ -68,14 +73,14 @@ export default function Modal({
           </div>
           <button
             type="button"
-            className="rounded-full bg-muted p-2 text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
+            className="flex-shrink-0 rounded-full bg-muted p-2 text-muted-foreground transition hover:bg-muted/80 hover:text-foreground"
             onClick={onClose}
             aria-label="Fechar"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+        <div className="overflow-y-auto overscroll-contain px-5 py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-6">{children}</div>
       </div>
     </div>,
     document.body,
